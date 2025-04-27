@@ -85,8 +85,7 @@ public class CreditCardFraudDetection {
         System.out.println("Fraud probability: "+fraudProbability);            
 
         
-        // shutdown the thread pool
-        DeepNetts.shutdown();
+
         
     }
 }
