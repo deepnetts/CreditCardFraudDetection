@@ -300,7 +300,7 @@ public class DataPreparation {
     }
 
     public void previewRows(int numberOfRows) {
-        System.out.println("First few rows:");
+        System.out.println("Loaded dataset (first "+numberOfRows+" rows):");
         System.out.println(dataSet.first(numberOfRows));
     }
 
@@ -385,6 +385,10 @@ public class DataPreparation {
     }
     
  public void checkClassBalance(String columnName) { 
+     checkClassBalance(dataSet, columnName);
+ }   
+    
+ public static void checkClassBalance(Table dataSet, String columnName) { 
         Table negativeExamples = dataSet.where(t -> t.intColumn(columnName).isEqualTo(0));
         Table positiveExamples = dataSet.where(t -> t.intColumn(columnName).isEqualTo(1));
 
@@ -407,6 +411,10 @@ public class DataPreparation {
        
     public static TabularDataSet<MLDataItem> createDataSet(Table table) {
         TabularDataSet<MLDataItem> dataSet= new TabularDataSet(29, 1);
+        String[] colNAmes = new String[table.columns().size()];
+        table.columnNames().toArray(colNAmes);
+        dataSet.setColumnNames(colNAmes);
+        
         for (int i = 0; i < table.rowCount(); i++) {            
             Row row = table.row(i);
             

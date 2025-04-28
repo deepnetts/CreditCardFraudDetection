@@ -8,8 +8,10 @@ import deepnetts.net.FeedForwardNetwork;
 import deepnetts.net.layers.activation.ActivationType;
 import deepnetts.net.loss.LossType;
 import java.io.IOException;
+import javax.visrec.ml.classification.BinaryClassifier;
 import javax.visrec.ml.data.DataSet;
 import javax.visrec.ml.eval.EvaluationMetrics;
+import javax.visrec.ri.ml.classification.FeedForwardNetBinaryClassifier;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.io.csv.CsvReadOptions;
 
@@ -37,10 +39,12 @@ import tech.tablesaw.io.csv.CsvReadOptions;
 public class CreditCardFraudWebinarDemo {
 
     public static void main(String[] args) throws IOException {
-                       
+            
+        // Load data set from CSV file
+        
         // specify CSV file options
         CsvReadOptions.Builder builder = 
-	CsvReadOptions.builder("datasets/creditcard.csv") // csv file path
+	CsvReadOptions.builder("creditcard.csv") // csv file path
 		.separator(',') // values are coma-delimited
 		.header(true); // first line contains column names
         CsvReadOptions options = builder.build();
@@ -55,6 +59,7 @@ public class CreditCardFraudWebinarDemo {
         dataPrep.previewRows(5);
                         
         // print columns with corresponding types
+        System.out.println("Basic column info");
         dataPrep.columnInfo();        
               
         // remove column Time since it is not relevant
@@ -69,6 +74,7 @@ public class CreditCardFraudWebinarDemo {
         dataPrep.handleMissingValues();
                         
         // print basic statistics summary
+        System.out.println("Basic statistics for all columns:");        
         dataPrep.statistics();
 
         // check if data set is balanced - is there the same amount of positive or negative examples
@@ -76,7 +82,7 @@ public class CreditCardFraudWebinarDemo {
         
         // create balanced subset
         Table balancedData  = DataPreparation.createBalancedSample(dataTable, "Class", 1);
-        dataPrep.checkClassBalance("Class");
+        DataPreparation.checkClassBalance(balancedData, "Class");
                                    
         // create data set for neural network training   
         TabularDataSet dataSet = DataPreparation.createDataSet(balancedData );
@@ -86,6 +92,9 @@ public class CreditCardFraudWebinarDemo {
         TrainTestSplit split = DataSets.trainTestSplit(dataSet, 0.6);
         DataSet<MLDataItem> trainingSet = split.getTrainingSet();
         DataSet<MLDataItem> testSet = split.getTestSet();
+        
+        
+        // CREATE AND TRAIN A MODEL
         
         int numInputs= 29;
         int numOutputs = 1;
@@ -104,11 +113,28 @@ public class CreditCardFraudWebinarDemo {
                               .setLearningRate(0.01f); // controls size of learning step ~ 1% of error
      
         neuralNet.train(trainingSet);
+                
+        // TEST/EVALUATE THE MODEL
         
         // test neural network and print evaluation metrics
         EvaluationMetrics em = neuralNet.test(testSet);
         System.out.println(em);
-        System.out.println("Done!");        
+        System.out.println("Done!");    
+        
+        // save the model, so it can be reused later
+        neuralNet.save("credit_card_fraud.dnet");
+        
+        // USE THE MODEL WITH JSR381
+        
+        // Example usage of the trained network with vis rec api
+        BinaryClassifier<float[]> fraudDetector = new FeedForwardNetBinaryClassifier(neuralNet);    
+        float[] testTransaction = testSet.get(0).getInput().getValues();
+        
+        System.out.println("Using model for prediction...");
+        Float fraudProbability = fraudDetector.classify(testTransaction);
+        System.out.println("Actual Fraud Label: "+testSet.get(0).getTargetOutput().getValues()[0]);              
+        System.out.println("Predicted Fraud probability: "+fraudProbability);      
+        
     }
 }
 
