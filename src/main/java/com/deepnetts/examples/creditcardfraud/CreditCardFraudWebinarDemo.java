@@ -41,10 +41,10 @@ public class CreditCardFraudWebinarDemo {
     public static void main(String[] args) throws IOException {
             
         // Load data set from CSV file
-        
+        // justr make sure that you unzip it first (could not put it on github due to size over 100Mb)
         // specify CSV file options
         CsvReadOptions.Builder builder = 
-	CsvReadOptions.builder("creditcard.csv") // csv file path
+	CsvReadOptions.builder("creditcard.csv") // csv file path 
 		.separator(',') // values are coma-delimited
 		.header(true); // first line contains column names
         CsvReadOptions options = builder.build();
