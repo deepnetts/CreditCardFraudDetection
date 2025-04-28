@@ -5,7 +5,6 @@ import deepnetts.data.TabularDataSet;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.logging.Logger;
 import java.util.stream.IntStream;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.stat.inference.KolmogorovSmirnovTest;
@@ -24,25 +23,12 @@ import tech.tablesaw.plotly.traces.BarTrace;
 import tech.tablesaw.plotly.traces.HistogramTrace;
 
 /**
- *  * Razdvojiti analizu i preprocesiranje Da bude inplace ili return da dobije
- * tabelu kao atribut dizajnirati flow - za cc
- *
- * atribut table da ima metode bez parametra table nego da radi na defaultnoj da
- * iam atribut table konstrutore
- *
- *
- *
+ * Data preparation utilities for dataframe from TableSaw.
  */
 public class DataPreparation {
 
-    private Table dataSet;   
-
-    private static final Logger LOGGER = Logger.getLogger(DataPreparation.class.getName()); // DeepNetts.class.getName()
-    
-    // DataSetAnalysys missingValues, outliers, 
-    // ovde napraviti klasu koja sadrzi rezultate svih analzia kao atribute
-    // i zdodaj metodu za export u deep netts
-
+    private final Table dataSet;   
+       
     public DataPreparation(Table dataSet) {
         this.dataSet = dataSet;
     }
@@ -117,7 +103,7 @@ public class DataPreparation {
             if (column instanceof StringColumn) {
                 StringColumn sc = (StringColumn) column;
                 Table freqTable = sc.countByCategory().sortDescendingOn("Count");
-                String mostFrequent = freqTable.stringColumn("Category").get(0); // ??? use case dependent, za manji broj nedostajucih vrednsti , da ne radi po defaultu
+                String mostFrequent = freqTable.stringColumn("Category").get(0); 
 
                 sc.set(sc.isMissing(), mostFrequent);
                 System.out.printf(">> Categorical column '%s' - missing values replaced with the most frequent: %s\n", column.name(), mostFrequent);
@@ -125,7 +111,6 @@ public class DataPreparation {
                 DoubleColumn dc = (DoubleColumn) column;
                 DoubleColumn filtered = dc.where(dc.isNotMissing());
 
-                // Konverzija u double[]
                 double[] values = filtered.asDoubleArray();
                 double mean = filtered.mean();
                 double std = filtered.standardDeviation();
@@ -156,20 +141,18 @@ public class DataPreparation {
     }
    
     /**
-     * replacece missng falues with most frequent value
+     * Replaces missing values with most frequent value
      * @param columnName 
      */
     public void imputeCategorical(String columnName) {
 
         Column<?> column = dataSet.column(columnName);
 
-        // Konvertujemo kolonu u StringColumn samo radi pronalaska najčešće vrednosti
         StringColumn asString = column.asStringColumn();
 
         Table freqTable = asString.countByCategory().sortDescendingOn("Count");
         String mostFrequent = freqTable.stringColumn("Category").get(0);
 
-        // Prolazimo kroz sve redove i zamenjujemo missing vrednosti
         for (int i = 0; i < column.size(); i++) {
             if (column.isMissing().contains(i)) {
                 try {
@@ -267,51 +250,34 @@ public class DataPreparation {
     }
 
     public void countUniqueValues() {
-        // Prolazimo kroz sve kolone u tabeli
         for (Column<?> col : dataSet.columns()) {
             String colName = col.name();
 
-            // Ispisujemo broj jedinstvenih vrednosti
             int uniqueCount = col.unique().size();
             System.out.println("Column: " + colName + " has " + uniqueCount + " unique values.");
         }
     }
 
-    /**
-     * Metod za winsorizaciju kolone podataka, koristi IQR za izračunavanje
-     * donje i gornje granice. Limit extreme values to reduce the effect of
-     * possibly spurious outliers
-     *
-     * @param data tabela koja sadrži podatke
-     * @param columnName naziv kolone koju treba winsorizovati
-     */
     public void winsorize(String columnName) {
-        // Pronađi kolonu prema nazivu
         Column<?> col = dataSet.column(columnName);
 
-        // Proveri da li je kolona numerička
         if (col instanceof NumericColumn<?>) {
             NumericColumn<?> numCol = (NumericColumn<?>) col;
 
-            // Ako je to konkretno DoubleColumn, koristimo ga direktno
             if (numCol instanceof DoubleColumn) {
                 DoubleColumn doubleCol = (DoubleColumn) numCol;
 
-                // Izračunavanje kvartila
                 double q1 = doubleCol.quartile1();
                 double q3 = doubleCol.quartile3();
                 double iqr = q3 - q1;
 
-                // Izračunavanje donje i gornje granice
                 double lowerBound = q1 - 1.5 * iqr;
                 double upperBound = q3 + 1.5 * iqr;
 
-                // Ako je donja granica negativna, postavimo je na 0 (ili neki minimalni validni broj)
                 if (lowerBound < 0) {
                     lowerBound = 0;
                 }
 
-                // Prolazimo kroz sve vrednosti u numeričkoj koloni i vršimo winsorizaciju
                 for (int i = 0; i < doubleCol.size(); i++) {
                     double value = doubleCol.get(i);
                     if (value < lowerBound) {
@@ -334,7 +300,6 @@ public class DataPreparation {
     }
 
     public void previewRows(int numberOfRows) {
-        // stampaj u logger ali i vrati
         System.out.println("First few rows:");
         System.out.println(dataSet.first(numberOfRows));
     }
@@ -349,11 +314,9 @@ public class DataPreparation {
 
     public void plotCategoricalFeatureVsClassTarget(String featureCol, String targetCol) {
 
-        // Grupisanje i brojanje kombinacija
         Table grouped = dataSet.countBy(featureCol, targetCol);
         String countCol = "Count";
 
-        // Konverzija kolona u string, bez obzira na originalni tip
         StringColumn featureStr = grouped.column(featureCol).asStringColumn();
         StringColumn targetStr = grouped.column(targetCol).asStringColumn();
 
@@ -367,7 +330,7 @@ public class DataPreparation {
             List<Number> yValues = new ArrayList<>();
 
             for (String featureVal : featureValues) {
-                // Filtriranje po kombinaciji
+
                 Table filtered = grouped.where(
                         featureStr.isEqualTo(featureVal).and(targetStr.isEqualTo(targetVal))
                 );
@@ -394,21 +357,17 @@ public class DataPreparation {
     }
 
     public void plotNumericFeatureVsClassTarget(String featureCol, String targetCol) {
-        // Pretpostavljamo da je target numerički (IntColumn)
+
         IntColumn target = dataSet.intColumn(targetCol);
         DoubleColumn feature = dataSet.doubleColumn(featureCol);
 
-        // Definisanje boja za svaku klasu
         String[] colors = {"#1f77b4", "#ff7f0e", "#2ca02c", "#d62728"};
 
-        // Lista za čuvanje svih histogram trace-ova
         List<HistogramTrace> traces = new ArrayList<>();
 
-        // Iteriraj kroz svaku jedinstvenu vrednost klase u targetCol
         for (int targetClass : target.unique()) {
             Table filtered = dataSet.where(target.isEqualTo(targetClass));
 
-            // Kreiraj histogram trace za svaki targetClass
             HistogramTrace trace = HistogramTrace.builder(filtered.doubleColumn(featureCol))
                     .name("Class " + targetClass)
                     .marker(Marker.builder().color(colors[targetClass % colors.length]).opacity(0.6).build())
@@ -416,15 +375,12 @@ public class DataPreparation {
             traces.add(trace);
         }
 
-        // Kreiranje Layout objekta bez korišćenja xaxis() i yaxis() metodama
         Layout layout = Layout.builder()
                 .title("Distribution of " + featureCol + " by class " + targetCol)
                 .build();
 
-        // Kreiraj Figure sa trace-ovima i layout-om
         Figure fig = new Figure(layout, traces.toArray(new HistogramTrace[0]));
 
-        // Prikazivanje plota
         Plot.show(fig);
     }
     

@@ -1,6 +1,5 @@
 package com.deepnetts.examples.creditcardfraud;
 
-
 import deepnetts.data.DataSets;
 import deepnetts.data.MLDataItem;
 import deepnetts.data.TabularDataSet;
@@ -14,7 +13,28 @@ import javax.visrec.ml.eval.EvaluationMetrics;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.io.csv.CsvReadOptions;
 
-public class CreditCardFraudWebinar {
+/**
+ * Credit Card Fraud Detection. 
+ * This example demonstrates how to use Feed Forward Neural Network to perform binary classification task.
+ * The trained network classifies credit card transactions into one of two possible categories: fraud / not fraud (true/false)
+ * The output of the network is probability that a given transaction is fraud.
+ *
+ * Data Set description.
+ * The data set contains transactions made by credit cards in September 2013 by European cardholders.
+ * This data set presents transactions that occurred in two days, where we have 492 frauds out of 284,807 transactions.
+ * The data set is highly unbalanced, the positive class (frauds) account for 0.172% of all transactions.
+ * For the purposes of this example data set has been balanced by using a subset of the original data set.
+ * All attributes in data set are  anonymized except last two which represent transaction amount and class. 
+ * URL: https://www.kaggle.com/mlg-ulb/creditcardfraud
+ * 
+ * For the best performance and accuracy the recommended way to run this example is to use Deep Netts Pro, with Free Development License.
+ * https://www.deepnetts.com/download-latest
+ *
+ * Step-by-step guide for setting up Deep Netts is available at
+ * https://www.deepnetts.com/quickstart/
+ * 
+ */
+public class CreditCardFraudWebinarDemo {
 
     public static void main(String[] args) throws IOException {
                        
