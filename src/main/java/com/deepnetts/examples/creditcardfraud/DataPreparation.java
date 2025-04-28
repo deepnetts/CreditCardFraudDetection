@@ -437,7 +437,6 @@ public class DataPreparation {
         Table positive = dataTable.where(t -> t.intColumn(columnName).isEqualTo(1));
         
         Table balancedSample = Table.create("Balanced CCF", positive.columns());
-        balancedSample.append(positive); // get all positive examples
                
         Random random = new Random(rndSeed);
         IntStream rndIdxs = random.ints(positive.rowCount(), 0, negative.rowCount());              

@@ -109,7 +109,7 @@ public class CreditCardFraudWebinarDemo {
   
         // set parameters of the training algorithm
         neuralNet.getTrainer().setStopError(0.02f)  // training will stop when this error is reached
-                              .setStopEpochs(10000) // or this number of epochs is reached (training iterations)
+                              .setStopEpochs(500) // or this number of epochs is reached (training iterations)
                               .setLearningRate(0.01f); // controls size of learning step ~ 1% of error
      
         neuralNet.train(trainingSet);

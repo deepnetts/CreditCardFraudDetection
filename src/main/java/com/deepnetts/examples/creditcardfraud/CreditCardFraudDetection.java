@@ -28,10 +28,10 @@ import deepnetts.data.MLDataItem;
  * URL: https://www.kaggle.com/mlg-ulb/creditcardfraud
  * 
  * For the best performance and accuracy the recommended way to run this example is to use Deep Netts Pro, with Free Development License.
- * https://www.deepnetts.com/download
+ * https://www.deepnetts.com/download-latest
  *
  * Step-by-step guide for setting up Deep Netts is available at
- * https://www.deepnetts.com/getting-started
+ * https://www.deepnetts.com/quickstart/
  * 
  * @see FeedForwardNetwork
  * @see BinaryClassifier
